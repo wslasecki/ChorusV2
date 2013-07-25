@@ -18,6 +18,7 @@ body{background: url(/img/grid_noise.png);}
     #messagesInner > p.messageRow:nth-child(even){background-color: #eee;}
       .messageRow{ color: #666; font-size: 1.2em; margin: 4px 5px;}
       .messageRow > strong{ margin-right: 5px;}
+      .vote {display:inline-block; float: right;}
         .timestamp{ font-size: .65em; color: #049cdb;}
       .systemRow{ margin: 0; font-size: .8em; color: #aaa; padding: 1px 4px!important;}
 

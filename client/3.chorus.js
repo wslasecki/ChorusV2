@@ -18,10 +18,11 @@ instachat["unreadMessages"] = 0;
 Meteor.subscribe('rooms');
 
 Meteor.autosubscribe(function () {
-	var room_name;
+	var room_name, role;
 	room_name = Session.get('room_name');
+	role = Session.get('role');
 	if (room_name) {
-		return Meteor.subscribe('messages', room_name);
+		return Meteor.subscribe(role, room_name);
 	}
 });
 
@@ -54,6 +55,18 @@ Template.messages.pretty_ts = function (timestamp) {
 	return d.getHours() + ":" + min;
 };
 
+Template.messages.vote = function() {
+	console.log(this.nick);
+	return ((Session.get("role") === "crowd") &&
+	 (Session.get("nick") !== this.nick));
+};
+
+Template.messages.events = {
+	'click .vote': function (e, template) {
+		Meteor.call("vote", this._id);
+	}
+};
+
 Template.nickAndRoom.nick = function () {
 	return Session.get("nick");
 };
@@ -75,8 +88,28 @@ Template.nickModal.nick = function () {
 };
 
 // Utility functions
+gup = function (name) {
+    name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+    var regexS = "[\\?&]"+name+"=([^&#]*)";
+    var regex = new RegExp(regexS);
+    var results = regex.exec(window.location.href);
+    if(results == null)
+	    return "";
+    else
+	    return unescape(results[1]);
+}
+
 joinRoom = function (roomName) {
-	var room;
+	var room, regexS, regex, room_name, role;
+	
+	//return the room name and not the query params.
+	//don't leave this here because it ugly
+	regexS = "^\\w*";
+	regex = new RegExp(regexS);
+	room_name = regex.exec(roomName)[0];
+
+	role = gup("role") || "crowd";
+	
 	room = Rooms.findOne({
 		name: roomName
 	});
@@ -89,13 +122,20 @@ joinRoom = function (roomName) {
 	$.cookie("room_name", roomName, {
 		expires: 365
 	});
+	
+	Session.set("role", role);
+	$.cookie("role", role, {
+		expires: 365
+	});
+	
 	Router.goToRoom(roomName);
 	scrollMessagesView();
 	$("#messageInput").select();
 	return Meteor.call("newMessage", {
 		system: true,
 		body: Session.get("nick") + " just joined the room.",
-		room_name: Session.get("room_name")
+		room_name: Session.get("room_name"),
+		role: role
 	});
 };
 
@@ -169,7 +209,8 @@ $("#messageForm").live("submit", function (e) {
 		Meteor.call('newMessage', {
 			nick: Session.get("nick"),
 			body: message,
-			room_name: Session.get("room_name")
+			room_name: Session.get("room_name"),
+			role: Session.get("role")
 		});
 	}
 	return false;
@@ -254,9 +295,13 @@ Meteor.methods({
 			newMsg["system"] = args.system;
 		}
 		newMsg["room_name"] = args.room_name;
+		newMsg["role"] = args.role;
 		newMsg["timestamp"] = UTCNow();
 		Messages.insert(newMsg);
 		return true;
+	},
+	vote: function (id) {
+	    Messages.update(id, {$inc: {votes: 1}});
 	}
 });
 
