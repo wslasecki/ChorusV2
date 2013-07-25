@@ -56,7 +56,6 @@ Template.messages.pretty_ts = function (timestamp) {
 };
 
 Template.messages.vote = function() {
-	console.log(this.nick);
 	return ((Session.get("role") === "crowd") &&
 	 (Session.get("nick") !== this.nick));
 };
@@ -107,19 +106,20 @@ joinRoom = function (roomName) {
 	regexS = "^\\w*";
 	regex = new RegExp(regexS);
 	room_name = regex.exec(roomName)[0];
+	console.log(room_name);
 
 	role = gup("role") || "crowd";
 	
 	room = Rooms.findOne({
-		name: roomName
+		name: room_name
 	});
 	if (!room) {
 		Rooms.insert({
-			name: roomName
+			name: room_name
 		});
 	}
-	Session.set("room_name", roomName);
-	$.cookie("room_name", roomName, {
+	Session.set("room_name", room_name);
+	$.cookie("room_name", room_name, {
 		expires: 365
 	});
 	
@@ -128,7 +128,7 @@ joinRoom = function (roomName) {
 		expires: 365
 	});
 	
-	Router.goToRoom(roomName);
+	Router.goToRoom(room_name);
 	scrollMessagesView();
 	$("#messageInput").select();
 	return Meteor.call("newMessage", {
