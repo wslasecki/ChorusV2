@@ -2,89 +2,72 @@
   <title>Chorus</title>
 </head>
 
-
-
 <body>
-  
-  <div id="header">
-    <div class="container" id="headerInner">
-      <h2 id="logo" class="pull-left brand">
-        Chorus<strong>V2</strong>
-      </h2>
-
-      {{> nickAndRoom}}
+    <div id="header">
+        <div class="container" id="headerInner">
+            <h2 id="logo" class="pull-left brand">
+                Chorus<strong>V2</strong>
+            </h2>
+            {{> muteButton}}
+        </div>
     </div>
-  </div>
 
-  <div id="content">
-    {{> messages}}
-  </div>
+    <div id="content">
+        {{> messages}}
+    </div>
 
-  <div id="footer">
-    {{> messages-input}}
-  </div>
-
-  {{> nickModal}}
-
+    <div id="footer">
+        {{> messages-input}}
+    </div>
+    {{> nickModal}}
 </body>
 
-
 <template name="nickModal">
-  <div class="modal" id="nickPickModal">
-    <div class="modal-header">
-      <!-- <a class="close" data-dismiss="modal">×</a> -->
-      <h3>Pick a Nick Name</h3>
+    <div class="modal" id="nickPickModal">
+        <div class="modal-header">
+            <!-- <a class="close" data-dismiss="modal">×</a> -->
+            <h3>Pick a Nick Name</h3>
+        </div>
+        <div class="modal-body">
+            <form id="nickPick">
+                <div class="warning"></div>
+                <p><input type="text" id="nickInput" class="span5" value="">
+                    <br><input type="submit" value="Start Chatting" class="span2"></p>
+            </form>
+        </div>
     </div>
-    <div class="modal-body">
-      <form id="nickPick">
-        <div class="warning"></div>
-        <p><input type="text" id="nickInput" class="span5" value="{{nick}}">
-          <br><input type="submit" value="Start Chatting" class="span1"></p>
-      </form>
-    </div>
-  </div>
 </template>
 
-
-<template name="nickAndRoom">
-  <div id="nickAndRoom" class="pull-right">
-    <strong>{{nick}}</strong>
-    is in the room:
-    <form id="joinRoom" class="form-search">
-      <input id="roomName" type="text" class="search-query" value="{{room}}">
-    </form>
-    <button id="mute" class="btn btn-small btn-inverse">
-        <spat class="{{volumeIcon}} icon-white"></span>
-      </button>
-  </div>
+<template name="muteButton">
+    <button id="mute" class="btn btn-small btn-inverse pull-right">
+        <span class="{{volumeIcon}} icon-white"></span>
+    </button>
 </template>
-
 
 <template name="messages-input">
-  <div id="chatInput">
-    <div class="container" id="messageInputInner">
-      <form id="messageForm">
-        <input id="messageInput" placeholder="Type your mesage and press enter..."  autocomplete="off" >
-      </form>
+    <div id="chatInput">
+        <div class="container" id="messageInputInner">
+            <form id="messageForm">
+                <input id="messageInput" placeholder="Type your message and press enter..."  autocomplete="off" >
+            </form>
+        </div>
     </div>
-  </div>
 </template>
 
-
 <template name="messages">
-  <div id="messages">
-    <div class="container" id="messagesInner">
-        {{#each messages}}
-          {{#if system}}
+    <div id="messages">
+        <div class="container" id="messagesInner">
+            {{#each messages}}
+            {{#if system}}
             <p class="systemRow">⊕ {{pretty_ts timestamp}} {{body}}</p>
-          {{else}}
-            <p class="messageRow"><span class="timestamp">{{pretty_ts timestamp}}</span> <strong>{{nick}}:</strong>{{body}}
-				{{#if vote}}
-					<button class="vote btn btn-mini">vote</button>
-				{{/if}}
-			</p>
-          {{/if}}
-        {{/each}}
+            {{else}}
+            <p class="messageRow {{role}}"><span class="timestamp">{{pretty_ts timestamp}}</span> <strong>{{workerId}}:</strong>{{body}}
+                {{#if votable}}
+                <button id="{{id}}" class="vote btn btn-mini">vote</button>
+                {{/if}}
+            </p>
+            {{/if}}
+            {{/each}}
+        </div>
     </div>
-  </div>
 </template>
