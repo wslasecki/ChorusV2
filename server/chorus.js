@@ -84,13 +84,15 @@ Meteor.methods({
         Messages.insert(newMsg);
         return true;
     },
-    vote: function (id) {
+    vote: function (params) {
+        var id = params[0];
+        var workerId = params[1];
         var message = Messages.findOne(id);
 
         if (message.votes >= (message.voteThreshold)) {
-            Messages.update(id, {$inc: {votes: 1}, $set: {successful: true}});
+            Messages.update(id, {$inc: {votes: 1}, $set: {successful: true}, $addToSet: { votedIds: workerId}});
         } else {
-            Messages.update(id, {$inc: {votes: 1}});
+            Messages.update(id, {$inc: {votes: 1}, $addToSet: { votedIds: workerId}});
         }
     }
 });

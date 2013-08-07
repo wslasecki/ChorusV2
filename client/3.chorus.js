@@ -138,7 +138,7 @@ Template.messages.id = function() {
 
 Template.messages.events = {
     'click .vote': function (e, template) {
-        Meteor.call("vote", this._id);
+        Meteor.call("vote", [this._id, Session.get("workerId")]);
     }
 };
 
