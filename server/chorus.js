@@ -14,57 +14,30 @@ Meteor.publish("tasks", function () {
 Messages = new Meteor.Collection("messages");
 
 Meteor.publish("admin", function (task) {
-    var count, skip;
-    count = Messages.find({
-        task: task,
-        role: {
-            $in: ["admin", "crowd", "requester"]
-        }
-    }).count();
-    // WSL TODO: What is this? Why do we want to skip anything over 150 messages?
-    skip = count > 150 ? count - 150 : 0;
     return Messages.find({
         task: task,
         role: {
             $in: ["admin", "crowd", "requester"]
         }
     }, {
-        skip: skip
+        sort: {timestamp: -1},
+        limit: 150
     });
 });
 
 Meteor.publish("crowd", function (task) {
-    var count, skip;
-    count = Messages.find({
-        task: task,
-        role: {
-            $in: ["crowd", "requester"]
-        }
-    }).count();
-    skip = count > 150 ? count - 150 : 0;
     return Messages.find({
         task: task,
         role: {
             $in: ["crowd", "requester"]
         }
     }, {
-        skip: skip
+        sort: {timestamp: -1},
+        limit: 150
     });
 });
 
 Meteor.publish("requester", function (task) {
-    var count, skip;
-    count = Messages.find({
-        $or:
-            [{
-                task: task,
-                role: "requester"
-            },
-                {
-                    votes: {$gt: 4}
-                }]
-    }).count();
-    skip = count > 150 ? count - 150 : 0;
     return Messages.find({
         $or:
             [{
@@ -72,10 +45,11 @@ Meteor.publish("requester", function (task) {
                 role: "requester"
             },
                 {
-                    votes: {$gt: 4}
+                    successful: true
                 }]
     }, {
-        skip: skip
+        sort: {timestamp: -1},
+        limit: 150
     });
 });
 
@@ -96,6 +70,13 @@ Meteor.methods({
         if (args.system) {
             newMsg["system"] = args.system;
         }
+        if ((args.role === "crowd") && (args.system !== true)) {
+            newMsg["voteThreshold"] = (function () {
+                var observers = Meteor._RemoteCollectionDriver.mongo._liveResultsSets['{"ordered":false,"collectionName":"messages","selector":{"task":"' + args.task +  '","role":{"$in":["crowd","requester"]}},"options":{"transform":null,"sort":{"timestamp":-1},"limit":150}}']._observeHandles,
+                    count = Object.keys(observers).length;
+                return count/3;
+            })();
+        }
         newMsg["task"] = args.task;
         newMsg["role"] = args.role;
         newMsg["timestamp"] = UTCNow();
@@ -104,7 +85,13 @@ Meteor.methods({
         return true;
     },
     vote: function (id) {
-        Messages.update(id, {$inc: {votes: 1}});
+        var message = Messages.findOne(id);
+
+        if (message.votes >= (message.voteThreshold)) {
+            Messages.update(id, {$inc: {votes: 1}, $set: {successful: true}});
+        } else {
+            Messages.update(id, {$inc: {votes: 1}});
+        }
     }
 });
 

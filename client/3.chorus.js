@@ -6,6 +6,54 @@ Messages = new Meteor.Collection("messages");
 // Collection Subscriptions
 Meteor.subscribe("tasks");
 
+// App startup
+Meteor.startup(function () {
+
+    instachat.unreadMessageSound = new Audio("/sound/Electro_-S_Bainbr-7955.wav");
+    $(window).resize();
+
+    var task_name = Session.get("task");
+    var task = Tasks.findOne({
+        task: task_name
+    });
+    if (!task) {
+        Tasks.insert({
+            name: task_name
+        });
+    }
+
+    scrollMessagesView();
+    $("#messageInput").select();
+
+    Session.set("role", (gup("role") || "crowd"));
+    Session.set("part", (gup("part") || "c"));
+    Session.set("task", (gup("task") || "testing"));
+    Session.set("assignmentId", (gup("assignmentId") || ""));
+    Session.set("hitId", (gup("hitId") || ""));
+    Session.set("turkSubmitTo", (gup("turkSubmitTo") || ""));
+    Session.set("min", (gup("min") || ""));
+
+    if (Session.get("role") === "requester") {
+        $('#nickPickModal').modal({
+            keyboard: false,
+            backdrop: "static"
+        });
+    } else {
+        Session.set("workerId", (gup("workerId") || Random.id()));
+        Meteor.call("newMessage", {
+            system: true,
+            body: Session.get("workerId") + " just joined the room.",
+            task: Session.get("task"),
+            role: Session.get("role")
+        });
+        history.pushState(null, null, "/tasks?role=" + Session.get("role") + "&part=" + Session.get("part") + "&task=" +
+            Session.get("task") + "&workerId=" + Session.get("workerId") + "&assignmentId=" +
+            Session.get("assignmentId") + "&hitId=" + Session.get("hitId") + "&turkSubmitTo=" +
+            Session.get("turkSubmitTo") + "&min=" + Session.get("min"));
+
+    }
+});
+
 // Globals
 instachat = {};
 instachat.UTCOffset = new Date().getTimezoneOffset() * 60000;
@@ -60,7 +108,7 @@ UTCNow = function () {
 
 // Template Binding//
 Template.messages.messages = function () {
-    return Messages.find();
+    return Messages.find({}, {sort: {timestamp: 1}});
 };
 
 Template.messages.pretty_ts = function (timestamp) {
@@ -86,7 +134,7 @@ Template.messages.votable = function () {
 
 Template.messages.id = function() {
     return this._id;
-}
+};
 
 Template.messages.events = {
     'click .vote': function (e, template) {
@@ -205,77 +253,4 @@ $("#nickPick").live("submit", function () {
         Session.get("min"));
     hideMessageAlert();
     return false;
-});
-
-//stubs
-Meteor.methods({
-    newMessage: function (args) {
-        var newMsg;
-        newMsg = {};
-        newMsg["body"] = args.body;
-        if (args.nick) {
-            newMsg["workerId"] = args.workerId;
-        }
-        if (args.system) {
-            newMsg["system"] = args.system;
-        }
-        newMsg["task"] = args.task;
-        newMsg["role"] = args.role;
-        newMsg["timestamp"] = UTCNow();
-        Messages.insert(newMsg);
-        return true;
-    },
-    vote: function (id) {
-        Messages.update(id, {$inc: {votes: 1}});
-    }
-});
-
-// App startup
-Meteor.startup(function () {
-
-    instachat.unreadMessageSound = new Audio("/sound/Electro_-S_Bainbr-7955.wav");
-    $(window).resize();
-
-    Meteor.subscribe(Session.get("role"), Session.get("task"));
-
-    var task_name = Session.get("task");
-    var task = Tasks.findOne({
-        task: task_name
-    });
-    if (!task) {
-        Tasks.insert({
-            name: task_name
-        });
-    }
-
-    scrollMessagesView();
-    $("#messageInput").select();
-
-    Session.set("role", (gup("role") || "crowd"));
-    Session.set("part", (gup("part") || "c"));
-    Session.set("task", (gup("task") || "testing"));
-    Session.set("assignmentId", (gup("assignmentId") || ""));
-    Session.set("hitId", (gup("hitId") || ""));
-    Session.set("turkSubmitTo", (gup("turkSubmitTo") || ""));
-    Session.set("min", (gup("min") || ""));
-
-    if (Session.get("role") === "requester") {
-        console.log($('#nickPickModal').modal({
-            keyboard: false,
-            backdrop: "static"
-        }));
-    } else {
-        Session.set("workerId", (gup("workerId") || Random.id()));
-        Meteor.call("newMessage", {
-            system: true,
-            body: Session.get("workerId") + " just joined the room.",
-            task: Session.get("task"),
-            role: Session.get("role")
-        });
-        history.pushState(null, null, "/tasks?role=" + Session.get("role") + "&part=" + Session.get("part") + "&task=" +
-            Session.get("task") + "&workerId=" + Session.get("workerId") + "&assignmentId=" + Session.get("assignmentId") +
-            "&hitId=" + Session.get("hitId") + "&turkSubmitTo=" + Session.get("turkSubmitTo") + "&min=" +
-            Session.get("min"));
-
-    };
 });
