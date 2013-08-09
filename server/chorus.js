@@ -76,6 +76,8 @@ Meteor.methods({
                     count = Object.keys(observers).length;
                 return count/3;
             })();
+            newMsg["votedIds"] = [ args.workerId ];
+            newMsg["votes"] = 1;
         }
         newMsg["task"] = args.task;
         newMsg["role"] = args.role;
@@ -89,12 +91,10 @@ Meteor.methods({
         var workerId = params[1];
         var message = Messages.findOne(id);
 
+        Messages.update(id, {$inc: {votes: 1}, $addToSet: { votedIds: workerId}});
         if (message.votes >= (message.voteThreshold)) {
-            Messages.update(id, {$inc: {votes: 1}, $set: {successful: true}, $addToSet: { votedIds: workerId}});
-        } else {
-            Messages.update(id, {$inc: {votes: 1}, $addToSet: { votedIds: workerId}});
+            Messages.update(id, {$set: {successful: true}});
         }
-        console.log(Messages.findOne(id));
     },
     unvote: function(params) {
         var id = params[0];
@@ -103,7 +103,6 @@ Meteor.methods({
         if (!message.successful) {
             Messages.update(id, {$inc: {votes: -1}, $pull: { votedIds: workerId}});
         }
-        console.log(Messages.findOne(id));
     }
 });
 
