@@ -94,6 +94,16 @@ Meteor.methods({
         } else {
             Messages.update(id, {$inc: {votes: 1}, $addToSet: { votedIds: workerId}});
         }
+        console.log(Messages.findOne(id));
+    },
+    unvote: function(params) {
+        var id = params[0];
+        var workerId = params[1];
+        var message = Messages.findOne(id);
+        if (!message.successful) {
+            Messages.update(id, {$inc: {votes: -1}, $pull: { votedIds: workerId}});
+        }
+        console.log(Messages.findOne(id));
     }
 });
 

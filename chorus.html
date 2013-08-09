@@ -63,7 +63,7 @@
             {{else}}
             <p class="messageRow {{role}}"><span class="timestamp">{{pretty_ts timestamp}}</span> <strong>{{workerId}}:</strong>{{body}}
                 {{#if votable}}
-                <button id="{{id}}" class="vote btn btn-mini">vote</button>
+                <button id="{{id}}" value="{{voted}}" class="vote btn btn-mini span1">{{voted}}</button>
                 {{/if}}
             </p>
             {{/if}}

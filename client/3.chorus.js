@@ -123,13 +123,23 @@ Template.messages.pretty_ts = function (timestamp) {
 };
 
 Template.messages.role = function () {
+    //todo: if message is successful display as it's class as if it were a requester's message to distinguish it as successful to workers
     return this.role;
 };
 
 Template.messages.votable = function () {
-    return ((Session.get("role") === "crowd") &&
-        (Session.get("workerId") !== this.workerId) &&
-        (this.role === "crowd"));
+    return Session.get("role") === "crowd" &&
+        this.role === "crowd" &&
+        Session.get("workerId") !== this.workerId &&
+        !this.successful;
+};
+
+Template.messages.voted = function () {
+    if (this.votedIds) {
+        var id = Session.get("workerId");
+        return this.votedIds.some(function(e) { return id === e; }) ? (function() { return "unvote"; })() : (function() { return "vote"; })();
+    }
+    return "vote";
 };
 
 Template.messages.id = function() {
@@ -137,8 +147,8 @@ Template.messages.id = function() {
 };
 
 Template.messages.events = {
-    'click .vote': function (e, template) {
-        Meteor.call("vote", [this._id, Session.get("workerId")]);
+    "click button": function (e, template) {
+        Meteor.call($(e.currentTarget).val(), [this._id, Session.get("workerId")]);
     }
 };
 
