@@ -14,14 +14,16 @@ body{background: url(/img/grid_noise.png);}
         #messagesInner > p { padding: 4px; border-radius:5px;}
             .messageRow{ color: #666; font-size: 1.2em; margin: 4px 5px;}
             .messageRow > strong{ margin-right: 5px;}
-            .requester {background-color: lime;}
-            .requester:nth-child(even) {background-color: rgb(142, 255, 142);}
-            .crowd {background-color: red;}
-            .crowd:nth-child(even) {background-color: rgb(252, 150, 150);}
+            .requester {background-color: #eef;}
+            .requester:nth-child(even) {background-color: #ddf;}
+            .crowd {background-color: #ffefaa;}
+            .crowd:nth-child(even) {background-color: #fffa99;}
             .admin {background-color: blue;}
             .admin:nth-child(even) {background-color: rgb(166, 166, 255);}
             .vote {display:inline-block; float: right;}
                 .timestamp{ font-size: .65em; color: #049cdb;}
+                    .stale{ color: #aaa;}
+                .accepted{ border: 1px solid #999; color: #000;}
             .systemRow{ margin: 0; font-size: .8em; color: #aaa; padding: 1px 4px!important;}
 
 #footer{ height: 50px; width: 100%; position: absolute; bottom: 0;}

@@ -58,16 +58,28 @@
     <div id="messages">
         <div class="container" id="messagesInner">
             {{#each messages}}
-            {{#if system}}
-            <p class="systemRow">⊕ {{pretty_ts timestamp}} {{body}}</p>
-            {{else}}
-            <p class="messageRow {{role}}"><span class="timestamp">{{pretty_ts timestamp}}</span> <strong>{{workerId}}:</strong>{{body}}
-                {{#if votable}}
-                <button id="{{id}}" value="{{voted}}" class="vote btn btn-mini span1">{{voted}}</button>
+                {{#if system}}
+                    <p class="systemRow">⊕ {{pretty_ts timestamp}} {{body}}</p>
+                {{else}}
+                    {{#if isStale timestamp}}
+                        {{#if successful}}
+                            <p class="messageRow stale" timestamp="{{timestamp}}">(<span class="timestamp stale">{{pretty_ts timestamp}}</span> {{workerId}}: <i>{{body}}</i>)</p>
+                        {{/if}}
+                    {{else}}
+                        {{#if successful}}
+                            <p class="messageRow {{role}} accepted" timestamp="{{timestamp}}"><span class="timestamp">{{pretty_ts timestamp}}</span> <strong>{{workerId}}:</strong>{{body}}
+                        {{else}}
+                            <p class="messageRow {{role}}" thresh="{{voteThreshold}}" timestamp="{{timestamp}}"><span class="timestamp">{{pretty_ts timestamp}}</span> <strong>{{workerId}}:</strong>{{body}}
+                        {{/if}}
+
+                        {{#if votable}}
+                            <button id="{{id}}" value="{{voted}}" class="vote btn btn-mini span1">{{voted}}</button>
+                        {{/if}}
+                        </p>
+                    {{/if}}
                 {{/if}}
-            </p>
-            {{/if}}
             {{/each}}
         </div>
     </div>
 </template>
+

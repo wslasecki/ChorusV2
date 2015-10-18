@@ -3,6 +3,9 @@ var Messages, Tasks, gup, UTCNow, hideMessageAlert, instachat, scrollMessagesVie
 Tasks = new Meteor.Collection("tasks");
 Messages = new Meteor.Collection("messages");
 
+// Params
+var staleTime = 100000;
+
 // Collection Subscriptions
 Meteor.subscribe("tasks");
 
@@ -100,6 +103,7 @@ scrollMessagesView = function () {
     }, 200);
 };
 
+// WSL: In use?
 UTCNow = function () {
     var now;
     now = new Date();
@@ -150,6 +154,10 @@ Template.messages.events = {
     "click button": function (e, template) {
         Meteor.call($(e.currentTarget).val(), [this._id, Session.get("workerId")]);
     }
+};
+
+Template.messages.isStale = function(msgTime) {
+    return (new Date).getTime() > (msgTime + staleTime);  // Classify prior messages older than 200s as stale
 };
 
 Template.muteButton.volumeIcon = function () {
@@ -264,3 +272,24 @@ $("#nickPick").live("submit", function () {
     hideMessageAlert();
     return false;
 });
+
+
+function checkMessages() {
+    $('.messageRow').each( function() {
+        if( !$(this).hasClass('stale') ) {
+            if( parseInt($(this).attr('timestamp')) + staleTime < new Date().getTime() ) {
+                $(this).addClass('stale');
+                $(this).children('.timestamp').addClass('stale');
+                $(this).children('button').remove();
+            }
+        }
+    });
+}
+
+// Timer callbacks
+
+var shortTimerHandle = setInterval( function() {
+    checkMessages();
+}, 5000);
+
+

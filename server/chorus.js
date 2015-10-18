@@ -3,6 +3,9 @@ var Messages, Tasks, UTCNow;
 // Tasks - {name: string}
 Tasks = new Meteor.Collection("tasks");
 
+// Params
+maxCount = 150;
+
 // Messages - {message:    String
 //             username:   String
 //             task:       String
@@ -21,7 +24,7 @@ Meteor.publish("admin", function (task) {
         }
     }, {
         sort: {timestamp: -1},
-        limit: 150
+        limit: maxCount
     });
 });
 
@@ -33,7 +36,7 @@ Meteor.publish("crowd", function (task) {
         }
     }, {
         sort: {timestamp: -1},
-        limit: 150
+        limit: maxCount
     });
 });
 
@@ -49,10 +52,11 @@ Meteor.publish("requester", function (task) {
                 }]
     }, {
         sort: {timestamp: -1},
-        limit: 150
+        limit: maxCount
     });
 });
 
+// WSL: not currently in use
 UTCNow = function () {
     var now;
     now = new Date();
@@ -72,16 +76,27 @@ Meteor.methods({
         }
         if ((args.role === "crowd") && (args.system !== true)) {
             newMsg["voteThreshold"] = (function () {
-                var observers = Meteor._RemoteCollectionDriver.mongo._liveResultsSets['{"ordered":false,"collectionName":"messages","selector":{"task":"' + args.task +  '","role":{"$in":["crowd","requester"]}},"options":{"transform":null,"sort":{"timestamp":-1},"limit":150}}']._observeHandles,
-                    count = Object.keys(observers).length;
+                var observers = Meteor._RemoteCollectionDriver.mongo._liveResultsSets['{"ordered":false,"collectionName":"messages","selector":{"task":"' + args.task +  '","role":{"$in":["crowd","requester"]}},"options":{"transform":null,"sort":{"timestamp":-1},"limit":150}}']._observeHandles;
+                var count = Object.keys(observers).length;
+                if( count < 3 ) {
+                    Messages.update(args.id, {$set: {successful: true}});
+                    newMsg["successful"] = true;
+                }
+console.log('COUNT: ', count, count/3);
                 return count/3;
             })();
             newMsg["votedIds"] = [ args.workerId ];
             newMsg["votes"] = 1;
+
         }
+
         newMsg["task"] = args.task;
+        newMsg["timestamp"] = new Date().getTime(); //UTCNow();
+
         newMsg["role"] = args.role;
-        newMsg["timestamp"] = UTCNow();
+        if( args.role == "requester" ) {
+            newMsg["successful"] = true;
+        }
 
         Messages.insert(newMsg);
         return true;
@@ -94,6 +109,7 @@ Meteor.methods({
         Messages.update(id, {$inc: {votes: 1}, $addToSet: { votedIds: workerId}});
         if (message.votes >= (message.voteThreshold)) {
             Messages.update(id, {$set: {successful: true}});
+            // TODO: show 'accepted'
         }
     },
     unvote: function(params) {
