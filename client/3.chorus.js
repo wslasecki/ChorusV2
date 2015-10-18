@@ -41,6 +41,7 @@ Meteor.startup(function () {
             keyboard: false,
             backdrop: "static"
         });
+        $('#nickInput').focus();  // Focus on the modal's textbox
     } else {
         Session.set("workerId", (gup("workerId") || Random.id()));
         Meteor.call("newMessage", {
@@ -54,6 +55,7 @@ Meteor.startup(function () {
             Session.get("assignmentId") + "&hitId=" + Session.get("hitId") + "&turkSubmitTo=" +
             Session.get("turkSubmitTo") + "&min=" + Session.get("min"));
 
+        $('#messageInput').focus();
     }
 });
 
@@ -266,6 +268,8 @@ $("#nickPick").live("submit", function () {
         "&hitId=" + Session.get("hitId") + "&turkSubmitTo=" + Session.get("turkSubmitTo") + "&min=" +
         Session.get("min"));
     hideMessageAlert();
+
+    $('#messageInput').focus();
     return false;
 });
 
@@ -289,3 +293,8 @@ var shortTimerHandle = setInterval( function() {
 }, 5000);
 
 
+
+// Main //
+$(document).ready( function() {
+    // On-start
+});
