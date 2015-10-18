@@ -1,4 +1,4 @@
-var Messages, Tasks, gup, UTCNow, hideMessageAlert, instachat, scrollMessagesView, showUnreadMessagesAlert, unreadMessage;
+var Messages, Tasks, gup, hideMessageAlert, instachat, scrollMessagesView, showUnreadMessagesAlert, unreadMessage;
 
 Tasks = new Meteor.Collection("tasks");
 Messages = new Meteor.Collection("messages");
@@ -59,7 +59,6 @@ Meteor.startup(function () {
 
 // Globals
 instachat = {};
-instachat.UTCOffset = new Date().getTimezoneOffset() * 60000;
 instachat.alertWhenUnreadMessages = false;
 instachat.messageAlertInterval = null;
 instachat.unreadMessages = 0;
@@ -101,13 +100,6 @@ scrollMessagesView = function () {
     return setTimeout(function () {
         return $("#messagesInner").scrollTop(10000);
     }, 200);
-};
-
-// WSL: In use?
-UTCNow = function () {
-    var now;
-    now = new Date();
-    return Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
 };
 
 // Template Binding//
@@ -159,6 +151,10 @@ Template.messages.events = {
 Template.messages.isStale = function(msgTime) {
     return (new Date).getTime() > (msgTime + staleTime);  // Classify prior messages older than 200s as stale
 };
+
+Template.messages.onlineCount = function() {
+    return Meteor.users.find({ "status.online": true }).count()
+}
 
 Template.muteButton.volumeIcon = function () {
     if (Session.get("mute")) {

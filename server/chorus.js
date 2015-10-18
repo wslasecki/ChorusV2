@@ -1,4 +1,4 @@
-var Messages, Tasks, UTCNow;
+var Messages, Tasks;
 
 // Tasks - {name: string}
 Tasks = new Meteor.Collection("tasks");
@@ -56,13 +56,6 @@ Meteor.publish("requester", function (task) {
     });
 });
 
-// WSL: not currently in use
-UTCNow = function () {
-    var now;
-    now = new Date();
-    return Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
-};
-
 Meteor.methods({
     newMessage: function (args) {
         var newMsg;
@@ -91,7 +84,7 @@ console.log('COUNT: ', count, count/3);
         }
 
         newMsg["task"] = args.task;
-        newMsg["timestamp"] = new Date().getTime(); //UTCNow();
+        newMsg["timestamp"] = new Date().getTime();
 
         newMsg["role"] = args.role;
         if( args.role == "requester" ) {
@@ -123,6 +116,7 @@ console.log('COUNT: ', count, count/3);
 });
 
 Meteor.startup(function () {
+    process.env.HTTP_FORWARDED_COUNT = 0;
     // remove all update/remove access from the client
     return _.each(["Tasks", "Messages"], function (collection) {
         return _.each(["update", "remove"], function (method) {
@@ -130,3 +124,4 @@ Meteor.startup(function () {
         });
     });
 });
+
